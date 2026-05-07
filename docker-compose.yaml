@@ -1,0 +1,34 @@
+services:
+  db:
+    image: postgres:13
+    container_name: redmine-db
+    environment:
+      POSTGRES_DB: redmine
+      POSTGRES_USER: redmine
+      POSTGRES_PASSWORD: redminepass
+    volumes:
+      - redmine_db:/var/lib/postgresql/data
+
+  redmine:
+    build: .
+    container_name: redmine
+    depends_on:
+      - db
+    ports:
+      - 3000:3000
+    environment:
+      REDMINE_DB_POSTGRES: db
+      REDMINE_DB_DATABASE: redmine
+      REDMINE_DB_USERNAME: redmine
+      REDMINE_DB_PASSWORD: redminepass
+    env_file:
+      - .env
+    extra_hosts:
+      - "ollama-host:host-gateway"
+    volumes:
+      - redmine_files:/usr/src/redmine/files
+      - ./plugins:/usr/src/redmine/plugins
+
+volumes:
+  redmine_db:
+  redmine_files:

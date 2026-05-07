@@ -1,0 +1,14 @@
+.env
+
+.DS_Store
+
+.tmp
+
+logs/
+.logs
+
+files/
+tmp/
+public/plugin_assets/
+
+.vscode/
