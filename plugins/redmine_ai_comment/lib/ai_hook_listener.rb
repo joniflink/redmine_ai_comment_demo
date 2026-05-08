@@ -21,7 +21,7 @@ class AiHookListener < Redmine::Hook::Listener
     issue = context[:issue]
 
     field = issue.custom_field_values.find do |value|
-      value.custom_field.name == "AI suggested priority id"
+      value.custom_field.name == ai_priority_custom_field_name
     end
 
     return "" if field.nil?
@@ -46,14 +46,25 @@ class AiHookListener < Redmine::Hook::Listener
   end
 
   def view_layouts_base_html_head(context = {})
+    field = ai_priority_custom_field
+    return "" unless field
+
     <<~HTML
       <style>
-        .cf_1,
-        #issue_custom_field_values_1,
-        label[for="issue_custom_field_values_1"] {
+        .cf_#{field.id},
+        #issue_custom_field_values_#{field.id},
+        label[for="issue_custom_field_values_#{field.id}"] {
           display: none !important;
         }
       </style>
     HTML
+  end
+
+  def ai_priority_custom_field_name
+    ENV.fetch("AI_PRIORITY_CUSTOM_FIELD_NAME")
+  end
+
+  def ai_priority_custom_field
+    IssueCustomField.find_by(name: ai_priority_custom_field_name)
   end
 end

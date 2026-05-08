@@ -43,11 +43,21 @@ class AiCommentController < ApplicationController
   end
 
   def clear_ai_priority_suggestion
-    custom_field = IssueCustomField.find_by(name: "AI suggested priority id")
-    return unless custom_field
+    @issue.custom_field_values.each do |value|
+      if value.custom_field.name == ai_priority_custom_field_name
+        value.value = nil
+      end
+    end
 
-    @issue.custom_field_values = {
-      custom_field.id.to_s => ""
-    }
+    # custom_field = IssueCustomField.find_by(name: "AI suggested priority id")
+    # return unless custom_field
+
+    # @issue.custom_field_values = {
+    #   custom_field.id.to_s => ""
+    # }
+  end
+
+  def ai_priority_custom_field_name
+    ENV.fetch("AI_PRIORITY_CUSTOM_FIELD_NAME")
   end
 end

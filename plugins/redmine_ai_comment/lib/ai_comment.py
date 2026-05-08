@@ -8,7 +8,7 @@ BASE_URL = os.getenv("REDMINE_BASE_URL")
 API_KEY = os.getenv("REDMINE_API_KEY")
 OLLAMA_URL = os.getenv("OLLAMA_URL")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL")
-AI_PRIORITY_CUSTOM_FIELD_ID = os.getenv("AI_PRIORITY_CUSTOM_FIELD_ID")
+AI_PRIORITY_CUSTOM_FIELD_NAME = os.getenv("AI_PRIORITY_CUSTOM_FIELD_NAME")
 
 ISSUE_PRIORITIES = {}
 
@@ -26,15 +26,30 @@ def aiComment(issue_id):
         addComment(issue_id, structuredResponse)
 
 
+def get_ai_priority_custom_field_id():
+    url = f"{BASE_URL}/custom_fields.json?key={API_KEY}"
+    response = requests.get(url)
+    response.raise_for_status()
+
+    fields = response.json().get("custom_fields", [])
+
+    for field in fields:
+        if field.get("name") == AI_PRIORITY_CUSTOM_FIELD_NAME:
+            return field["id"]
+
+    return None
+
+
 def saveAiPrioritySuggestion(priority_id):
-    if priority_id != None:
+    field_id = get_ai_priority_custom_field_id()
+    if priority_id and field_id:
         url = f"{BASE_URL}/issues/{issue_id}.json?key={API_KEY}"
 
         data = {
             "issue": {
                 "custom_fields": [
                     {
-                        "id": AI_PRIORITY_CUSTOM_FIELD_ID,
+                        "id": field_id,
                         "value": str(priority_id)
                     }
                 ]
@@ -51,6 +66,11 @@ def saveAiPrioritySuggestion(priority_id):
         print("Response:", response.text)
 
         response.raise_for_status()
+    else:
+        missing = []
+        if not priority_id: missing.append("priority_id")
+        if not field_id: missing.append("field_id")
+        print(f"[ai_comment.py] AI priority suggestion not saved to Redmine: {' and '.join(missing)} missing.")
 
 
 def getIssue(issue_id):
