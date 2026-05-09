@@ -57,10 +57,27 @@ Linux users may need to install Docker Compose separetly depending on their Dock
 
 ### 3.1. Clone repo, copy `.env` and build
 
+1. Clone repo
+
 ```bash
 git clone <repo>
+```
+
+2. Navigate to repo
+
+```bash
 cd <repo>
+```
+
+3. copy `.env`
+
+```bash
 cp .env.example .env
+```
+
+4. Build and start Redmine
+
+```bash
 docker compose up -d --build
 ```
 
@@ -107,6 +124,8 @@ REDMINE_API_KEY=<Your API key here>
 
 ```bash
 docker compose down
+```
+```bash
 docker compose up -d
 ```
 This will log you out of Redmine and you'll have to sign back in.
@@ -231,6 +250,8 @@ Try restarting Redmine with:
 
 ```bash
 docker compose down
+```
+```bash
 docker compose up -d
 ```
 
@@ -246,6 +267,8 @@ If you've changed the name of the custom field, check that the name of the field
 
 ```bash
 docker compose down
+```
+```bash
 docker compose up -d
 ```
 
@@ -286,8 +309,7 @@ redmine_ai_comment_demo/
 │       ├── init.rb
 │       └── requirements.txt
 ├── scripts/
-│   ├── check_setup.py
-│   └── create_custom_field.py
+│   └── check_setup.py
 ├── .env
 ├── .env.example
 ├── .gitignore
