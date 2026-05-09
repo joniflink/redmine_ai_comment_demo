@@ -94,6 +94,16 @@ Redmine might ask you to reset the password. You'll need to remember the passwor
 
 Now you should have working Redmine.
 
+Redmine can be shut down with:
+```bash
+docker compose down
+```
+
+and started with:
+```bash
+docker compose up -d
+```
+
 ## 4. Setup Steps
 
 ### 4.1. Initialize Redmine default configuration
@@ -221,6 +231,7 @@ The plugin should post a comment under the new issue. If the priority suggested 
 - [Comment doesn't appear](#62-comment-doesnt-appear)
 - [The apply suggestion button doesn't appear](#63-the-apply-suggestion-button-doesnt-appear)
 - [AI does not respond](#64-ai-does-not-respond)
+- [Need to format Redmine](#65-need-to-format-redmine)
 
 ---
 
@@ -283,6 +294,19 @@ Ensure the model is installed:
 ```bash
 ollama list
 ```
+
+---
+
+### 6.5. Need to format Redmine
+
+You can delete all data from Redmine by using:
+
+```bash
+docker compose down -v
+```
+
+**WARNING:**  
+This will remove the database and all Redmine data.
 
 ## 7. Known limitations
 
