@@ -30,14 +30,28 @@ This plugin has been created as a part of a Master's thesis.
 
 ## 2. Requirements
 
-- Docker & Docker Compose
+- Docker & Docker Compose (modern Docked Desktop includes both)
 - Python 3 (for setup scripts)
     - requires `requests`
 - Ollama installed locally
 
+### 2.1. Installation links
+
+- Docker Desktop:  
+  https://www.docker.com/products/docker-desktop/
+
+- Ollama:  
+  https://ollama.com/download
+
+- Python:  
+  https://www.python.org/downloads/
+
+**Note!**  
+Linux users may need to install Docker Compose separetly depending on their Docker installation.
+
 ## 3. Quick Start
 
-**Installing Redmine not needed.** Redmine itself is not included in this repository. It is started automatically using the official Redmine Docker image via Docker Compose.
+**Installing Redmine is not needed.** Redmine itself is not included in this repository. It is started automatically using the official Redmine Docker image via Docker Compose.
 
 ---
 
@@ -58,6 +72,8 @@ docker compose up -d --build
 - Default login:
     - username: admin
     - password: admin
+
+Redmine might ask you to reset the password. You'll need to remember the password later.
 
 Now you should have working Redmine.
 
@@ -90,20 +106,29 @@ REDMINE_API_KEY=<Your API key here>
 6. After updating the `.env` file, restart Redmine:
 
 ```bash
-docker compose restart redmine
+docker compose down
+docker compose up -d
 ```
+This will log you out of Redmine and you'll have to sign back in.
 
 ---
 
 ### 4.3. Create custom field
 
-For the 'Apply suggestion' button to appear a custom field is needed. You can create the custom field using the following script:
+For the 'Apply suggestion' button to appear a custom field is needed. The custom field needs to be created manually:
 
-```bash
-python3 scripts/create_custom_field.py
-```
+In Redmine go to `Administration` &rarr; `Custom fields` &rarr; `New custom field`
 
-The script needs `requests` to run.
+- Object to attach: `Issues`
+
+Next
+
+- Format: `Text`  
+- Name: `AI suggested priority id`  
+- Trackers: all or wanted  
+- Projects: all or wanted, the `For all projects` selection applies also for new projects.
+
+If you decide to use a different name, please update `.env` and restart Redmine.
 
 ---
 
@@ -115,7 +140,7 @@ The script needs `requests` to run.
 ollama run gemma3:1b
 ```
 
-If you decide to use a different model, please update `.env`.
+If you decide to use a different model, please update `.env` and restart Redmine.
 
 2. Allow connections from Docker:
 
@@ -157,7 +182,11 @@ You can run a check script to ensure everything is working.
 python3 scripts/check_setup.py
 ```
 
-The script requires `requests`.
+The script needs `requests` to run. It can be installed by running:
+
+```bash
+pip3 install requests
+```
 
 ## 5. Usage
 
@@ -169,28 +198,60 @@ The plugin should post a comment under the new issue. If the priority suggested 
 
 ## 6. Troubleshooting
 
+- [Default data command not working](#61-default-data-command-not-working)
+- [Comment doesn't appear](#62-comment-doesnt-appear)
+- [The apply suggestion button doesn't appear](#63-the-apply-suggestion-button-doesnt-appear)
+- [AI does not respond](#64-ai-does-not-respond)
+
+---
+
+For own troubleshooting, you can view logs:
+
+```bash
+docker compose logs redmine
+```
+
+or live logs:
+
+```bash
+docker compose logs -f redmine
+```
+
+---
+
 ### 6.1. Default data command not working
 
 In Redmine go to `Administration` and check and create data either manually or using default data links, at least in `Roles and permissions`, `Trackers`, `Issue statuses`, `Workflow` and `Enumerations / Issue priorities`.
 
 ---
 
-### 6.2. Custom field script not working
+### 6.2. Comment doesn't appear
 
-You can create the custom field manually:
+Try restarting Redmine with:
 
-Go to `Redmine` &rarr; `Administration` &rarr; `Custom fields` &rarr; `New custom field`
+```bash
+docker compose down
+docker compose up -d
+```
 
-Object to attach: `Issues`
-
-Format: `Text`  
-Name: `AI suggested priority id` 
-
-If you decide to use a different name, please update `.env`.
+Comments are currently generated only for new issues.
 
 ---
 
-### 6.3. AI does not respond
+### 6.3. The apply suggestion button doesn't appear
+
+The apply suggestion button should appear if the priority suggested by AI is different from the priority currently set on the issue. If the button should appear but doesn't, in Redmine go to `Administration` &rarr; `Custom fields` &rarr; `AI suggested priority id` and check that the correct trackers and project are selected.
+
+If you've changed the name of the custom field, check that the name of the field matches in both Redmine and `.env`. Always after updating the `.env` file restart Redmine by using:
+
+```bash
+docker compose down
+docker compose up -d
+```
+
+---
+
+### 6.4. AI does not respond
 
 Check Ollama is running:  
 http://localhost:11434/api/tags
