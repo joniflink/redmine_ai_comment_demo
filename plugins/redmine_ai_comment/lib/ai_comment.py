@@ -3,6 +3,7 @@ import sys
 import requests
 import os
 
+from duration import Duration
 
 BASE_URL = os.getenv("REDMINE_BASE_URL")
 API_KEY = os.getenv("REDMINE_API_KEY")
@@ -18,8 +19,7 @@ def aiComment(issue_id):
     issue_str = structureIssue(issue_json)
     task_str = structureTask(issue_str)
     aiResponse = messageOllama(task_str)
-    current_prio = issue_json.get("priority", {}).get("id")
-    structuredResponse = structureResponse(aiResponse, current_prio)
+    structuredResponse = structureResponse(aiResponse)
     saveAiPrioritySuggestion(aiResponse.get("suggested_priority_id"))
 
     if structuredResponse != None:
@@ -140,21 +140,19 @@ Description: {desc}
 def structureTask(structuredIssue):
     structuredPriorities = structureIssuePriorities()
     return """
-You're part of an automation.
-Your job is to analyze an issue and suggest a priority for it.
-Include a justification of the suggested priority in the comment field.
-The suggested priority must match in both fields.
-The comment field will be added straight to the comment which will be added under the issue.
-The comment field may contain other information as well.
-The end-user cannot reply to you.
-Return ONLY a valid JSON in this exact format:\n
+Analyze the following issue. Suggest a priority and a time estimate for the issue.
+The suggested priority must be picked from the options below.
+Parse your response as a valid JSON in the following format:
+
 {
-    "suggested_priority_id": <ID of suggested priority as integer, from the list below>,
-    "comment": "<comment to show for the end-user>"
-}\n
-Do not include any extra text.
-Your response has to be able to be parsed straihgt to JSON with Python's json.loads(your_response)\n\n
-    """ + structuredPriorities + "\n\n" + structuredIssue
+    "suggested_priority_id": <Priority ID as an integer>,
+    "time_estimate": <Time estimate in minutes (may be over 60, will be parsed later) as an integer for the whole issue>,
+    "reason": <Reason for the choices>
+}
+
+Do not include any extra text. Your response will go directly into a JSON parser.
+Make sure that your response can be automatically read using Python's json.loads()\n\n
+""" + structuredPriorities + "\n\n" + structuredIssue
 
 
 def messageOllama(message):
@@ -174,7 +172,7 @@ def messageOllama(message):
         },
         timeout=60
     )
-
+    print(response)
     return parseAiResponse(response)
 
 
@@ -188,6 +186,11 @@ def clean_json_text(text):
     if text.endswith("```"):
         text = text.removesuffix("```").strip()
 
+    text = text.replace("\\_", "_")
+
+    import re
+    text = re.sub(r',\s*}', '}', text)
+
     return text
 
 
@@ -200,31 +203,19 @@ def parseAiResponse(ai_response):
         raise ValueError(f"AI did not return valid JSON: {content}") from e
 
 
-def structureResponse(response_json, current_prio):
+
+def structureResponse(response_json):
     suggested_prio = response_json.get("suggested_priority_id")
-    comment = response_json.get("comment")
+    duration = Duration(response_json.get("time_estimate"))
+    reason = response_json.get("reason")
 
-    response = ""
+    return f"""
+Suggestion from AI
 
-    if comment != None:
-        response += "Priority suggestion from AI:\n"
-        response += comment
-
-    if suggested_prio != None:
-        if len(response) != 0:
-            response += "\n\n"
-            response += "Suggestion: "
-
-        if suggested_prio == current_prio:
-            response += "Keep the priority as **" + getIssuePriority(current_prio) + "**."
-        else:
-            response += "Change the priority from " + getIssuePriority(current_prio) + " to **" + getIssuePriority(suggested_prio) + "**."
-
-    if len(response) > 0:
-        response += "\n\n- Ollama AI"
-        return response
-    else:
-        return None
+Suggested priority: {getIssuePriority(suggested_prio)}
+Suggested time estimate: {duration.as_string()}
+Reason: {reason}
+"""
     
 
 def addComment(issue_id, text):

@@ -29,16 +29,32 @@ class AiHookListener < Redmine::Hook::Listener
 
     priority_id = field.value
 
+    return "" if issue.priority_id.to_s == priority_id.to_s
+
+    priority_name = IssuePriority.find_by(id: priority_id)
+
     context[:controller].send(
       :render_to_string,
       inline: <<~ERB,
         <div class="box">
           <strong>AI Comment</strong>
-          <p>AI has suggested priority change for this issue.</p>
+          <p>AI suggests priority change to #{priority_name}.</p>
+
           <%= button_to "Apply AI suggestion",
             "/ai_comment/issues/#{issue.id}/apply_priority",
             method: :post,
-            params: {priority_id: #{priority_id}},
+            params: {
+              apply_action: "apply",
+              priority_id: #{priority_id}
+            },
+            class: "button" %>
+
+          <%= button_to "Cancel",
+            "/ai_comment/issues/#{issue.id}/apply_priority",
+            method: :post,
+            params: {
+              apply_action: "cancel"
+            },
             class: "button" %>
         </div>
       ERB

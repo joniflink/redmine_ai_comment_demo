@@ -1,12 +1,12 @@
 # Redmine AI Comment Demo
 
-A Redmine plugin that uses a local AI model (Ollama) to analyze and suggest priority updates.
+A Redmine plugin that uses a local AI model to analyze and suggest priority updates.
 
 The user can review and apply AI suggestion directly from the issue view.
 
-This plugin has been created as a part of a Master's thesis.
+This plugin has been created as a part of a Master's thesis. The thesis itself isn't public yet.
 
-[FIN] Tämä plugin on luotu osana diplomityötä. Plugin ja tämä dokumentaatio on kirjoitettu englanniksi.
+[FIN] Tämä plugin on luotu osana diplomityötä. Plugin ja tämä dokumentaatio on kirjoitettu englanniksi. Itse diplomityötä ei ole vielä julkaistu.
 
 ## Contents
 
@@ -329,7 +329,8 @@ redmine_ai_comment_demo/
 │       │   └── routes.rb
 │       ├── lib/
 │       │   ├── ai_comment.py
-│       │   └── ai_hook_listener.rb
+│       │   ├── ai_hook_listener.rb
+│       │   └── duration.py
 │       ├── init.rb
 │       └── requirements.txt
 ├── scripts/
